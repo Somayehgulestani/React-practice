@@ -81,12 +81,13 @@ export function App () {
   )
 }
 
-let total = 0
-let percent = 0
 function HeroSection ({ list }) {
-  let item = list.map(v => {
-    return (total += v.items.length)
-  })
+  let total = list.reduce((val, e) => val + e.items.length, 0)
+  
+  
+  let done = list.reduce((val,e)=> val+e.items.filter(item => item.checked).length,0)
+  const percent = total > 0 ? Math.round((done / total * 100) ):0
+  console.log(percent)
 
   return (
     <div className='relative '>
@@ -136,27 +137,30 @@ function Items ({ list, onSetList }) {
 
   function handleCheckBox (e, index) {
     const check = list.map(item => {
-      item.items.map((e, i) => {
+      const check2 = item.items.map((value, i) => {
         if (index === i) {
           return {
-            ...e.items,
-            checked: !e.checked
+            ...value,
+            checked: !value.checked
           }
         }
-        console.log(e)
+
+        return value
       })
-      return item
+      return { ...item, items: check2 }
     })
     onSetList(check)
+    console.log(check)
   }
 
-  // function handleSort (title) {
-  //   const newList = [...list]
-  //   newList[title].items.sort((a, b) => {
-  //     return a.name.localeCompare(b.name)
-  //   })
-  //   onSetList(newList)
-  // }
+  function handleSort (e, index) {
+    const newList = [...list]
+    const sortList = newList[index].items.sort((a, b) => {
+      return a.name.localeCompare(b.name)
+    })
+    newList[index] = { ...newList[index], items: sortList }
+    onSetList(newList)
+  }
   return (
     <div className='mt-8 w-full'>
       {list.map((item, index) => {
@@ -164,13 +168,20 @@ function Items ({ list, onSetList }) {
           <div key={index} className='shadow-lg p-4 rounded-lg w-full'>
             <h2 className='font-bold flex justify-between mb-4 pr-2'>
               {item.category}
-              {/* <span onClick={e => handleSort(item.category)}>sort</span> */}
-              <span
-                onClick={() => setOpen(index === open ? null : index)}
-                className='cursor-pointer text-lg '
-              >
-                {open === index ? '➖' : '➕'}
-              </span>
+              <div>
+                <span
+                  className='cursor-pointer self-end '
+                  onClick={e => handleSort(e, index)}
+                >
+                  🔃
+                </span>
+                <span
+                  onClick={() => setOpen(index === open ? null : index)}
+                  className='cursor-pointer text-lg '
+                >
+                  {open === index ? '➖' : '➕'}
+                </span>
+              </div>
             </h2>
             {open === index && (
               <div className='flex flex-col gap-2'>
@@ -184,7 +195,7 @@ function Items ({ list, onSetList }) {
                       <input
                         type='checkbox'
                         className=''
-                        onChange={(e, index) => handleCheckBox(e, option.id)}
+                        onChange={e => handleCheckBox(e, index)}
                       ></input>
                     </div>
                   )
